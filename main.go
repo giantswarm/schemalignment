@@ -26,6 +26,8 @@ var (
 		//"Azure": ""
 		// "https://raw.githubusercontent.com/giantswarm/cluster-azure/main/helm/cluster-azure/values.schema.json",
 	}
+
+	url = "http://localhost:8080/"
 )
 
 type Data struct {
@@ -67,7 +69,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = open.Start("http://localhost:8080/")
+	log.Printf("Opening browser at %s", url)
+	err = open.Start(url)
 	if err != nil {
 		log.Fatal(err)
 	}
