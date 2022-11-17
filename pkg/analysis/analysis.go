@@ -9,12 +9,35 @@ import (
 	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
 )
 
+// ClusterApp holds information on a Giant Swarm cluster app for a Cluster API provider.
+type ClusterApp struct {
+	// User-friendly name of the Cluster API infrastructure provider.
+	ProviderName string
+
+	// URL of the GitHub repo landing page.
+	RepositoryURL string
+
+	// URL of the schema file in JSON for download.
+	SchemaURL string
+}
+
+// Analyser is the agent that performs comparison and analysis on the schemas.
 type Analyser struct {
-	SchemaUrls      map[string]string
-	Schemas         map[string]*jsonschema.Schema
+	// The cluster apps handed over to the agent.
+	ClusterApps []ClusterApp
+
+	// Schemas holds the full schema information in the original hierarchical
+	// form. Map key is the provider name.
+	Schemas map[string]*jsonschema.Schema
+
+	// FlattenedSchema holds a flattened schema where all property names
+	// are brought into a path like `/main/sub/subsub`.
+	// Top level map key is the provider name.
+	// Second level map key is the property name in path form.
 	FlattenedSchema map[string]map[string]*jsonschema.Schema
 }
 
+// PropertyDetails is an extract of information regarding a single property in a schema.
 type PropertyDetails struct {
 	Key             string
 	KeyHierarchical string
@@ -22,52 +45,63 @@ type PropertyDetails struct {
 	DefaultValue    string
 }
 
-func New(schemaUrls map[string]string) (*Analyser, error) {
+func New(clusterApps []ClusterApp) (*Analyser, error) {
 	a := &Analyser{
-		SchemaUrls: schemaUrls,
-		Schemas:    make(map[string]*jsonschema.Schema),
+		ClusterApps:     clusterApps,
+		Schemas:         make(map[string]*jsonschema.Schema),
+		FlattenedSchema: make(map[string]map[string]*jsonschema.Schema),
 	}
 
-	for provider, url := range schemaUrls {
-		schema, err := jsonschema.Compile(url)
+	for _, clusterApp := range clusterApps {
+		schema, err := jsonschema.Compile(clusterApp.SchemaURL)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
 
-		a.Schemas[provider] = schema
-	}
-
-	a.FlattenedSchema = make(map[string]map[string]*jsonschema.Schema)
-	for provider := range schemaUrls {
-		a.FlattenedSchema[provider] = make(map[string]*jsonschema.Schema)
-		a.FlattenedSchema[provider] = a.flattened(provider)
+		a.Schemas[clusterApp.ProviderName] = schema
+		a.FlattenedSchema[clusterApp.ProviderName] = make(map[string]*jsonschema.Schema)
+		a.FlattenedSchema[clusterApp.ProviderName] = flattenedSchema(schema)
 	}
 
 	return a, nil
 }
 
-func (a *Analyser) FullSchemas() map[string][]string {
+// Providers returns the list of provider names in the order of definition.
+func (a *Analyser) Providers() (providers []string) {
+	for _, clusterApp := range a.ClusterApps {
+		providers = append(providers, clusterApp.ProviderName)
+	}
+
+	return providers
+}
+
+// Returns a list of all hierarchical property keys from all schemas.
+func (a *Analyser) HierarchicalKeys() (keys []string) {
+	for key := range a.MergedSchemas() {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// MergedSchemas returns a map of properties occuring over all analysed schemas,
+// with the list of providers as their value.
+func (a *Analyser) MergedSchemas() map[string][]string {
 	// Create complete list of all property keys with a list of the providers having them.
 	fullSchemas := make(map[string][]string)
-	for provider := range a.SchemaUrls {
-		// collect all keys
-		for key := range a.FlattenedSchema[provider] {
+	for _, clusterApp := range a.ClusterApps {
+		// Collect all keys
+		for key := range a.FlattenedSchema[clusterApp.ProviderName] {
 			_, ok := fullSchemas[key]
 			if ok {
-				fullSchemas[key] = append(fullSchemas[key], provider)
+				fullSchemas[key] = append(fullSchemas[key], clusterApp.ProviderName)
 			} else {
-				fullSchemas[key] = []string{provider}
+				fullSchemas[key] = []string{clusterApp.ProviderName}
 			}
 		}
 	}
 
 	return fullSchemas
-}
-
-// Flattens the schema, using a hierarchical key.
-func (a *Analyser) flattened(provider string) map[string]*jsonschema.Schema {
-	var mymap = make(map[string]*jsonschema.Schema)
-	return flattened(mymap, a.Schemas[provider], "", 0)
 }
 
 // Return keys of the provider's schema
@@ -80,7 +114,14 @@ func (a *Analyser) Keys(provider string) []string {
 	return keys
 }
 
-// Returns map of properties in this schema
+// Flattens the schema, using a hierarchical key.
+func flattenedSchema(schema *jsonschema.Schema) map[string]*jsonschema.Schema {
+	var mymap = make(map[string]*jsonschema.Schema)
+	return flattened(mymap, schema, "", 0)
+}
+
+// Returns map of properties in this schema by
+// recursing into a schema's properties.
 func flattened(mymap map[string]*jsonschema.Schema, schema *jsonschema.Schema, parentKey string, level int) map[string]*jsonschema.Schema {
 	for propertyName, propertySchema := range schema.Properties {
 		key := parentKey + "/" + propertyName

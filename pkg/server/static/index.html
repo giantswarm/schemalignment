@@ -45,16 +45,16 @@
       .then((data) => {
         let table = $('#table');
         let headerRow = table.find('thead tr');
-        data.providers.forEach(provider => {
+        data.Providers.forEach(provider => {
           headerRow.append('<th scope="col" class="ctd">'+ provider +'</th>');
         });
 
         let tbody = table.find('tbody');
-        data.property_keys.forEach(prop => {
-          let row = $('<tr><th scope="row" class="prop">'+ splitProperty(prop) +'</th><td class="ctd">'+ data.properties_and_providers[prop].length +'</td></tr>');
-
-          data.providers.forEach(provider => {
-            row.append('<td class="ctd">'+ (data.properties_and_providers[prop].includes(provider) ? '✅' : '') +'</td>');
+        data.PropertyKeys.forEach(prop => {
+          let row = $('<tr><th scope="row" class="prop">'+ splitProperty(prop) +'</th></tr>');
+          row.append('<td class="ctd">'+ data.PropertiesAndProviders[prop].length +'</td>');
+          data.Providers.forEach(provider => {
+            row.append('<td class="ctd">'+ (data.PropertiesAndProviders[prop].includes(provider) ? '✅' : '') +'</td>');
           });
           tbody.append(row);
         });
