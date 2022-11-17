@@ -45,8 +45,8 @@
       .then((data) => {
         let table = $('#table');
         let headerRow = table.find('thead tr');
-        data.Providers.forEach(provider => {
-          headerRow.append('<th scope="col" class="ctd">'+ provider +'</th>');
+        data.ClusterApps.forEach(clusterApp => {
+          headerRow.append('<th scope="col" class="ctd"><div>'+ clusterApp.ProviderName +'</div><div><a href="'+ clusterApp.RepositoryURL +'">repo</a> <a href="'+ clusterApp.SchemaURL +'">schema</a></div></th>');
         });
 
         let tbody = table.find('tbody');

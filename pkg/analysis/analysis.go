@@ -2,11 +2,13 @@
 package analysis
 
 import (
+	"log"
 	"sort"
 
 	"github.com/giantswarm/microerror"
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
+	"golang.org/x/exp/slices"
 )
 
 // ClusterApp holds information on a Giant Swarm cluster app for a Cluster API provider.
@@ -60,7 +62,7 @@ func New(clusterApps []ClusterApp) (*Analyser, error) {
 
 		a.Schemas[clusterApp.ProviderName] = schema
 		a.FlattenedSchema[clusterApp.ProviderName] = make(map[string]*jsonschema.Schema)
-		a.FlattenedSchema[clusterApp.ProviderName] = flattenedSchema(schema)
+		a.FlattenedSchema[clusterApp.ProviderName] = flattenedSchema(schema, clusterApp.ProviderName)
 	}
 
 	return a, nil
@@ -115,19 +117,54 @@ func (a *Analyser) Keys(provider string) []string {
 }
 
 // Flattens the schema, using a hierarchical key.
-func flattenedSchema(schema *jsonschema.Schema) map[string]*jsonschema.Schema {
+func flattenedSchema(schema *jsonschema.Schema, providerName string) map[string]*jsonschema.Schema {
 	var mymap = make(map[string]*jsonschema.Schema)
-	return flattened(mymap, schema, "", 0)
+	return flattened(mymap, schema, providerName, "", 0)
 }
 
 // Returns map of properties in this schema by
 // recursing into a schema's properties.
-func flattened(mymap map[string]*jsonschema.Schema, schema *jsonschema.Schema, parentKey string, level int) map[string]*jsonschema.Schema {
-	for propertyName, propertySchema := range schema.Properties {
-		key := parentKey + "/" + propertyName
-		mymap[key] = propertySchema
-		if level < 10 {
-			mymap = flattened(mymap, propertySchema, key, level+1)
+func flattened(mymap map[string]*jsonschema.Schema, schema *jsonschema.Schema, providerName, parentKey string, level int) map[string]*jsonschema.Schema {
+	if slices.Contains(schema.Types, "object") {
+		// This is an object property.
+		for propertyName, propertySchema := range schema.Properties {
+			key := parentKey + "/" + propertyName
+			if slices.Contains(propertySchema.Types, "array") {
+				key = key + "[*]"
+			}
+			mymap[key] = propertySchema
+
+			if level < 10 {
+				mymap = flattened(mymap, propertySchema, providerName, key, level+1)
+			}
+		}
+	} else if slices.Contains(schema.Types, "array") {
+		// Array properties.
+		//parentKey = parentKey + "[*]"
+
+		if schema.Items2020 != nil {
+			if len(schema.Items2020.Types) == 1 {
+				itemType := schema.Items2020.Types[0]
+				if itemType == "object" {
+					for propertyName, propertySchema := range schema.Items2020.Properties {
+						key := parentKey + "/" + propertyName
+						mymap[key] = propertySchema
+
+						if level < 10 {
+							mymap = flattened(mymap, propertySchema, providerName, key, level+1)
+						}
+					}
+				} else if itemType == "string" {
+					// Fine to ignore this. Nothing to add for string and number types.
+				} else {
+					log.Printf("Debug: provider %q array %s items skipped because of unhandled type %s", providerName, parentKey, itemType)
+				}
+			} else {
+				log.Printf("Warning: provider %q array %s has multiple types %s, skipped.", providerName, parentKey, schema.Items2020.Types)
+			}
+		} else {
+			mymap[parentKey] = nil
+			log.Printf("Warning: provider %q array %s provides no 'items' schema.", providerName, parentKey)
 		}
 	}
 
