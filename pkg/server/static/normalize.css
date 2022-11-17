@@ -11236,3 +11236,10 @@ textarea.form-control-lg {
 .prop {
   font-family: Inconsolata, monospaced;
 }
+
+span.propchunk {
+  color: #bbb;
+}
+.propchunk:last-of-type {
+  color: #000;
+}

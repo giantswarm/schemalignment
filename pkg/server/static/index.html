@@ -26,6 +26,19 @@
 
   <script src="javascript.js"></script>
   <script>
+  let splitProperty = function(s){
+    let parts = [];
+    
+    // remove leading separator
+    s = s.substring(1, s.length);
+
+    s.split('/').forEach((item, n) => {
+      parts.push('<span class="propchunk">.' + item + '</span>');
+    });
+
+    return parts.join('');
+  };
+
   $(document).ready(function() {
     fetch('/data.json')
       .then((response) => response.json())
@@ -38,7 +51,7 @@
 
         let tbody = table.find('tbody');
         data.property_keys.forEach(prop => {
-          let row = $('<tr><th scope="row" class="prop">'+ prop.replaceAll('/', '.') +'</th><td class="ctd">'+ data.properties_and_providers[prop].length +'</td></tr>');
+          let row = $('<tr><th scope="row" class="prop">'+ splitProperty(prop) +'</th><td class="ctd">'+ data.properties_and_providers[prop].length +'</td></tr>');
 
           data.providers.forEach(provider => {
             row.append('<td class="ctd">'+ (data.properties_and_providers[prop].includes(provider) ? '✅' : '') +'</td>');
