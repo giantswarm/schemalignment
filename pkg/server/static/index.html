@@ -9,8 +9,11 @@
   <meta name="theme-color" content="#fafafa">
 </head>
 
-<body>
+<body style="margin: 10px;">
   <div>
+    <form>
+      <input type="text" id="filterInput" onkeyup="filter()" placeholder="Filter properties" class="form-control">
+    </form>
     <table id="table" class="table table-hover sortable" data-toggle="table">
       <thead class="table-light" style="position: sticky; top: 0;">
         <tr>
@@ -18,7 +21,7 @@
           <th scope="col" class="ctd">Providers</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="tbody">
       </tbody>
     </table>
   </div>
@@ -37,6 +40,40 @@
     });
 
     return parts.join('');
+  };
+
+  let getTextRecursive = function(element) {
+    let text = "";
+    text += element.textContent || td.innerText;
+    if (element.childElementCount > 0) {
+      Array.from(element.children).forEach(child => {
+        text += getTextRecursive(child);
+      });
+    }
+
+    return text;
+  }
+
+  let filter = function() {
+    let input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("filterInput");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("tbody");
+    tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows, and hide those
+    // where th does not match the search query.
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("th")[0];
+      if (td) {
+        txtValue = getTextRecursive(td);
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }
+    }
   };
 
   $(document).ready(function() {
