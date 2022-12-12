@@ -126,16 +126,19 @@ func flattenedSchema(schema *jsonschema.Schema, providerName string) map[string]
 // recursing into a schema's properties.
 func flattened(mymap map[string]*jsonschema.Schema, schema *jsonschema.Schema, providerName, parentKey string, level int) map[string]*jsonschema.Schema {
 	if slices.Contains(schema.Types, "object") {
-		// This is an object property.
-		for propertyName, propertySchema := range schema.Properties {
-			key := parentKey + "/" + propertyName
-			if slices.Contains(propertySchema.Types, "array") {
-				key = key + "[*]"
-			}
-			mymap[key] = propertySchema
+		if len(schema.Properties) == 0 && schema.AdditionalProperties == nil {
+			log.Printf("Warning: provider %q object %s has no 'properties'/'additionalProperties' defined.", providerName, parentKey)
+		} else {
+			for propertyName, propertySchema := range schema.Properties {
+				key := parentKey + "/" + propertyName
+				if slices.Contains(propertySchema.Types, "array") {
+					key = key + "[*]"
+				}
+				mymap[key] = propertySchema
 
-			if level < 10 {
-				mymap = flattened(mymap, propertySchema, providerName, key, level+1)
+				if level < 10 {
+					mymap = flattened(mymap, propertySchema, providerName, key, level+1)
+				}
 			}
 		}
 	} else if slices.Contains(schema.Types, "array") {
