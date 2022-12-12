@@ -30,11 +30,11 @@ var (
 			RepositoryURL: "https://github.com/giantswarm/cluster-gcp",
 			SchemaURL:     "https://raw.githubusercontent.com/giantswarm/cluster-gcp/main/helm/cluster-gcp/values.schema.json",
 		},
-		{
-			ProviderName:  "OpenStack",
-			RepositoryURL: "https://github.com/giantswarm/cluster-openstack",
-			SchemaURL:     "https://raw.githubusercontent.com/giantswarm/cluster-openstack/main/helm/cluster-openstack/values.schema.json",
-		},
+		// {
+		// 	ProviderName:  "OpenStack",
+		// 	RepositoryURL: "https://github.com/giantswarm/cluster-openstack",
+		// 	SchemaURL:     "https://raw.githubusercontent.com/giantswarm/cluster-openstack/main/helm/cluster-openstack/values.schema.json",
+		// },
 		{
 			ProviderName:  "VSphere",
 			RepositoryURL: "https://github.com/giantswarm/cluster-vsphere",
