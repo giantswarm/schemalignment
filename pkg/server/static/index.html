@@ -69,6 +69,20 @@
     return parts.join('');
   };
 
+  let parseLocation = function(s){
+    let parts = [];
+    let url = new URL(s);
+    let pathParts = url.pathname.split('/');
+
+    // Provider name from path
+    parts.push('<a href="'+ s +'">'+ pathParts[2].substr(8) +'</a>');
+
+    // Property name
+    parts.push('<code>'+ url.hash.substr(12) +'</code>');
+
+    return parts.join(' ');
+  };
+
   let getTextRecursive = function(element) {
     let text = "";
     text += element.textContent || td.innerText;
@@ -153,8 +167,9 @@
           trow.append('<td class="ctd">'+ data.Features[feature].length +'</td>');          
 
           let field = $('<td class="locations"></td>');
+          data.Features[feature].sort();
           data.Features[feature].forEach(loc => {
-            field.append('<div><a href="'+ loc +'">'+ loc +'</a></div>');
+            field.append('<div>'+ parseLocation(loc) +'</div>');
           });
           trow.append(field);
 
