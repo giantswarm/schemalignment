@@ -21,6 +21,11 @@ var (
 			SchemaURL:     "https://raw.githubusercontent.com/giantswarm/cluster-aws/master/helm/cluster-aws/values.schema.json",
 		},
 		{
+			ProviderName:  "Azure",
+			RepositoryURL: "https://github.com/giantswarm/cluster-azure",
+			SchemaURL:     "https://raw.githubusercontent.com/giantswarm/cluster-azure/master/helm/cluster-azure/values.schema.json",
+		},
+		{
 			ProviderName:  "Cloud Director",
 			RepositoryURL: "https://github.com/giantswarm/cluster-cloud-director",
 			SchemaURL:     "https://raw.githubusercontent.com/giantswarm/cluster-cloud-director/main/helm/cluster-cloud-director/values.schema.json",
