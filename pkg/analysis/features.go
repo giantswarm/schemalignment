@@ -54,7 +54,7 @@ func extractFeatures(s *jsonschema.Schema) []string {
 
 	// additionalProperties
 	if s.AdditionalProperties != nil {
-		features = append(features, "additional_properties")
+		features = append(features, "additionalProperties")
 		switch v := s.AdditionalProperties.(type) {
 		case bool:
 			features = append(features, "additional_properties_boolean")
@@ -67,7 +67,7 @@ func extractFeatures(s *jsonschema.Schema) []string {
 
 	// patternProperties
 	if s.PatternProperties != nil {
-		features = append(features, "pattern_properties")
+		features = append(features, "patternProperties")
 		switch v := s.AdditionalProperties.(type) {
 		case bool:
 			features = append(features, "pattern_properties_boolean")
@@ -80,7 +80,7 @@ func extractFeatures(s *jsonschema.Schema) []string {
 
 	// additionalItems
 	if s.AdditionalItems != nil {
-		features = append(features, "additional_items")
+		features = append(features, "additionalItems")
 		switch v := s.AdditionalProperties.(type) {
 		case bool:
 			features = append(features, "additional_items_boolean")
