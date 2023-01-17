@@ -39,6 +39,11 @@ func extractFeatures(s *jsonschema.Schema) []string {
 	// List of feature strings to collect.
 	features := []string{}
 
+	// Dereference
+	if s.Ref != nil {
+		s = s.Ref
+	}
+
 	// type
 	if len(s.Types) > 1 {
 		features = append(features, "multiple_types")
