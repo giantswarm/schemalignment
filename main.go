@@ -59,6 +59,9 @@ type Data struct {
 
 	// Map of properties (key) and array of provides per key
 	PropertiesAndProviders map[string][]string
+
+	// Map of features (key) and array of locations where this feature occurs.
+	Features map[string][]string
 }
 
 func main() {
@@ -72,6 +75,7 @@ func main() {
 		Providers:              analyser.Providers(),
 		PropertyKeys:           analyser.HierarchicalKeys(),
 		PropertiesAndProviders: analyser.MergedSchemas(),
+		Features:               analyser.Features(),
 	}
 	dataJson, err := json.Marshal(data)
 	if err != nil {

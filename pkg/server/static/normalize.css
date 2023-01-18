@@ -11243,3 +11243,15 @@ span.propchunk {
 .propchunk:last-of-type {
   color: #000;
 }
+
+form {
+  padding-top: 10px;
+}
+
+td.locations {
+  font-size: 0.9em;
+}
+
+code {
+  color: #666;
+}

@@ -11,19 +11,46 @@
 
 <body style="margin: 10px;">
   <div>
-    <form>
-      <input type="text" id="filterInput" onkeyup="filter()" placeholder="Filter properties" class="form-control">
-    </form>
-    <table id="table" class="table table-hover sortable" data-toggle="table">
-      <thead class="table-light" style="position: sticky; top: 0;">
-        <tr>
-          <th scope="col">Property</th>
-          <th scope="col" class="ctd">Providers</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-      </tbody>
-    </table>
+    <nav>
+      <div class="nav nav-tabs" id="navtab" role="tablist">
+        <button class="nav-link active" id="nav-properties-tab" data-bs-toggle="tab" data-bs-target="#nav-properties" type="button" role="tab" aria-controls="nav-properties" aria-selected="true">Properties</button>
+        <button class="nav-link" id="nav-features-tab" data-bs-toggle="tab" data-bs-target="#nav-features" type="button" role="tab" aria-controls="nav-features" aria-selected="false">Features</button>
+      </div>
+    </nav>
+
+    <div class="tab-content" id="nav-tabContent">
+      <div class="tab-pane fade show active" id="nav-properties" role="tabpanel" aria-labelledby="nav-properties-tab" tabindex="0">
+        <form>
+          <input type="text" id="filterPropertiesInput" onkeyup="filterProperties()" placeholder="Filter properties" class="form-control">
+        </form>
+        <table id="propertiesTable" class="table table-hover sortable" data-toggle="table">
+          <thead class="table-light" style="position: sticky; top: 0;">
+            <tr>
+              <th scope="col">Property</th>
+              <th scope="col" class="ctd sorttable_numeric sorttable_sorted_reverse">Providers</th>
+            </tr>
+          </thead>
+          <tbody id="propertiesTableBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="tab-pane fade" id="nav-features" role="tabpanel" aria-labelledby="nav-features-tab" tabindex="1">
+        <form>
+          <input type="text" id="filterFeaturesInput" onkeyup="filterFeatures()" placeholder="Filter features" class="form-control">
+        </form>
+        <table id="featuresTable" class="table table-hover sortable" data-toggle="table">
+          <thead class="table-light" style="position: sticky; top: 0;">
+            <tr>
+              <th scope="col">Combined features</th>
+              <th scope="col" class="ctd sorttable_numeric sorttable_sorted_reverse">Instances</th>
+              <th scope="col">Locations</th>
+            </tr>
+          </thead>
+          <tbody id="featuresTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 
@@ -42,6 +69,20 @@
     return parts.join('');
   };
 
+  let parseLocation = function(s){
+    let parts = [];
+    let url = new URL(s);
+    let pathParts = url.pathname.split('/');
+
+    // Provider name from path
+    parts.push('<a href="'+ s +'">'+ pathParts[2].substr(8) +'</a>');
+
+    // Property name
+    parts.push('<code>'+ url.hash.substr(12) +'</code>');
+
+    return parts.join(' ');
+  };
+
   let getTextRecursive = function(element) {
     let text = "";
     text += element.textContent || td.innerText;
@@ -54,11 +95,11 @@
     return text;
   }
 
-  let filter = function() {
+  let filterProperties = function() {
     let input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("filterInput");
+    input = document.getElementById("filterPropertiesInput");
     filter = input.value.toUpperCase();
-    table = document.getElementById("tbody");
+    table = document.getElementById("propertiesTableBody");
     tr = table.getElementsByTagName("tr");
 
     // Loop through all table rows, and hide those
@@ -76,17 +117,39 @@
     }
   };
 
+  let filterFeatures = function() {
+    let input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("filterFeaturesInput");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("featuresTableBody");
+    tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows, and hide those
+    // where th does not match the search query.
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[0];
+      if (td) {
+        txtValue = getTextRecursive(td);
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }
+    }
+  };
+
   $(document).ready(function() {
     fetch('/data.json')
       .then((response) => response.json())
       .then((data) => {
-        let table = $('#table');
+        // Populate properties
+        let table = $('#propertiesTable');
         let headerRow = table.find('thead tr');
         data.ClusterApps.forEach(clusterApp => {
           headerRow.append('<th scope="col" class="ctd"><div>'+ clusterApp.ProviderName +'</div><div><a href="'+ clusterApp.RepositoryURL +'">repo</a> <a href="'+ clusterApp.SchemaURL +'">schema</a></div></th>');
         });
-
-        let tbody = table.find('tbody');
+        let tbody = table.find('#propertiesTableBody');
         data.PropertyKeys.forEach(prop => {
           let row = $('<tr><th scope="row" class="prop">'+ splitProperty(prop) +'</th></tr>');
           row.append('<td class="ctd">'+ data.PropertiesAndProviders[prop].length +'</td>');
@@ -95,7 +158,35 @@
           });
           tbody.append(row);
         });
+
+        // Populate features
+        let ftbody = $('#featuresTableBody');
+        Object.keys(data.Features).forEach(feature => {
+          let trow = $('<tr><td><code>'+ feature +'</code></td></tr>');
+          
+          trow.append('<td class="ctd">'+ data.Features[feature].length +'</td>');          
+
+          let field = $('<td class="locations"></td>');
+          data.Features[feature].sort();
+          data.Features[feature].forEach(loc => {
+            field.append('<div>'+ parseLocation(loc) +'</div>');
+          });
+          trow.append(field);
+
+          ftbody.append(trow);
+        });
       });
+    
+    // Enable tabs
+    const triggerTabList = document.querySelectorAll('#navtab button');
+    triggerTabList.forEach(triggerEl => {
+      const tabTrigger = new bootstrap.Tab(triggerEl);
+
+      triggerEl.addEventListener('click', event => {
+        event.preventDefault();
+        tabTrigger.show();
+      });
+    });
   });
   </script>
 </body>
