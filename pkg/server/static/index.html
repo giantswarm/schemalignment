@@ -63,7 +63,7 @@
     s = s.substring(1, s.length);
 
     s.split('/').forEach((item, n) => {
-      parts.push('<span class="propchunk">.' + item + '</span>');
+      parts.push('<span class="propchunk">/' + item + '</span>');
     });
 
     return parts.join('');
