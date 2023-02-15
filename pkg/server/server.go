@@ -12,7 +12,7 @@ import (
 
 var content embed.FS
 
-func Serve(port int, jsonBytes []byte) {
+func Serve(port int, jsonBytes []byte) error {
 	r := &Router{&mux.Router{}}
 
 	r.MustResponse("GET", "/", func(res http.ResponseWriter, req *http.Request) {
@@ -38,7 +38,7 @@ func Serve(port int, jsonBytes []byte) {
 		fmt.Fprint(res, string(jsonBytes))
 	})
 
-	r.Run(fmt.Sprintf(":%d", port))
+	return r.Run(fmt.Sprintf(":%d", port))
 }
 
 type Router struct {
@@ -49,6 +49,6 @@ func (r *Router) MustResponse(meth, path string, h http.HandlerFunc) {
 	r.HandleFunc(path, h).Methods(meth)
 }
 
-func (r *Router) Run(address string) {
-	http.ListenAndServe(address, r)
+func (r *Router) Run(address string) error {
+	return http.ListenAndServe(address, r)
 }

@@ -83,5 +83,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server.Serve(8080, dataJson)
+	err = server.Serve(8080, dataJson)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
