@@ -159,11 +159,46 @@ func flattened(mymap map[string]*jsonschema.Schema, schema *jsonschema.Schema, p
 					}
 				} else if itemType == "string" {
 					// Fine to ignore this. Nothing to add for string and number types.
+				} else if itemType == "number" {
+					// Fine to ignore this. Nothing to add for string and number types.
+				} else if itemType == "integer" {
+					// Fine to ignore this. Nothing to add for string and number types.
 				} else {
 					log.Printf("Debug: provider %q array %s items skipped because of unhandled type %s", providerName, parentKey, itemType)
 				}
 			} else {
 				log.Printf("Warning: provider %q array %s has multiple types %s, skipped.", providerName, parentKey, schema.Items2020.Types)
+			}
+		} else if schema.Items != nil {
+			switch v := schema.Items.(type) {
+			case *jsonschema.Schema:
+				if len(v.Types) == 1 {
+					itemType := v.Types[0]
+					log.Printf("Debug: provider %q array %s items have type %q", providerName, parentKey, itemType)
+
+					if itemType == "object" {
+						for propertyName, propertySchema := range v.Properties {
+							key := parentKey + "/" + propertyName
+							mymap[key] = propertySchema
+
+							if level < 10 {
+								mymap = flattened(mymap, propertySchema, providerName, key, level+1)
+							}
+						}
+					} else if itemType == "string" {
+						// Fine to ignore this. Nothing to add for string and number types.
+					} else if itemType == "number" {
+						// Fine to ignore this. Nothing to add for string and number types.
+					} else if itemType == "integer" {
+						// Fine to ignore this. Nothing to add for string and number types.
+					} else {
+						log.Printf("Debug: provider %q array %s items skipped because of unhandled type %s", providerName, parentKey, itemType)
+					}
+				} else {
+					log.Printf("Warning: provider %q array %s has multiple types %s, skipped.", providerName, parentKey, v.Types)
+				}
+			case []*jsonschema.Schema:
+				log.Printf("Debug: items is type []*jsonschema.Schema")
 			}
 		} else {
 			mymap[parentKey] = nil
