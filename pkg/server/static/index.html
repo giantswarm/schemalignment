@@ -154,7 +154,27 @@
           let row = $('<tr><th scope="row" class="prop">'+ splitProperty(prop) +'</th></tr>');
           row.append('<td class="ctd">'+ data.PropertiesAndProviders[prop].length +'</td>');
           data.Providers.forEach(provider => {
-            row.append('<td class="ctd">'+ (data.PropertiesAndProviders[prop].includes(provider) ? '✅' : '') +'</td>');
+            let field = $('<td class="ctd"></td>');
+            
+            if (typeof data.PropertiesAndProviders[prop][provider] !== 'undefined') {
+              if (data.PropertiesAndProviders[prop][provider].Types && data.PropertiesAndProviders[prop][provider].Types.length) {
+                field.append('<p class="type">' + data.PropertiesAndProviders[prop][provider].Types.join(', ') + '</p>');
+              } else {
+                field.append('<p class="type notype">No type</p>');
+              }
+
+              if (data.PropertiesAndProviders[prop][provider].Title !== '') {
+                field.append('<p class="title">' + data.PropertiesAndProviders[prop][provider].Title + '</p>');
+              } else {
+                field.append('<p class="title notitle">No title</p>');
+              }
+
+              if (data.PropertiesAndProviders[prop][provider].Description !== '') {
+                field.append('<p class="description">' + data.PropertiesAndProviders[prop][provider].Description + '</p>');
+              }
+            }
+
+            row.append(field);
           });
           tbody.append(row);
         });

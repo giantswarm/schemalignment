@@ -55,7 +55,10 @@ func New(clusterApps []ClusterApp) (*Analyser, error) {
 	}
 
 	for _, clusterApp := range clusterApps {
-		schema, err := jsonschema.Compile(clusterApp.SchemaURL)
+		compiler := jsonschema.NewCompiler()
+		compiler.ExtractAnnotations = true
+
+		schema, err := compiler.Compile(clusterApp.SchemaURL)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
@@ -86,19 +89,29 @@ func (a *Analyser) HierarchicalKeys() (keys []string) {
 	return keys
 }
 
+type ProviderPropertySummary struct {
+	Types       []string
+	Title       string
+	Description string
+}
+
 // MergedSchemas returns a map of properties occuring over all analysed schemas,
-// with the list of providers as their value.
-func (a *Analyser) MergedSchemas() map[string][]string {
+// with the list of providers and additional info as their value.
+func (a *Analyser) MergedSchemas() map[string]map[string]ProviderPropertySummary {
 	// Create complete list of all property keys with a list of the providers having them.
-	fullSchemas := make(map[string][]string)
+	fullSchemas := make(map[string]map[string]ProviderPropertySummary)
 	for _, clusterApp := range a.ClusterApps {
 		// Collect all keys
 		for key := range a.FlattenedSchema[clusterApp.ProviderName] {
 			_, ok := fullSchemas[key]
-			if ok {
-				fullSchemas[key] = append(fullSchemas[key], clusterApp.ProviderName)
-			} else {
-				fullSchemas[key] = []string{clusterApp.ProviderName}
+			if !ok {
+				fullSchemas[key] = make(map[string]ProviderPropertySummary)
+			}
+
+			fullSchemas[key][clusterApp.ProviderName] = ProviderPropertySummary{
+				Types:       a.FlattenedSchema[clusterApp.ProviderName][key].Types,
+				Title:       a.FlattenedSchema[clusterApp.ProviderName][key].Title,
+				Description: a.FlattenedSchema[clusterApp.ProviderName][key].Description,
 			}
 		}
 	}

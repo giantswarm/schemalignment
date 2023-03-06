@@ -11233,6 +11233,29 @@ textarea.form-control-lg {
   text-align: center;
 }
 
+.ctd p {
+  margin-bottom: none;
+  font-size: 0.8rem;
+}
+
+p.type {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-family: Inconsolata, monospaced;
+}
+
+p.notype {
+  color: red;
+}
+
+p.title {
+  font-weight: bold;
+}
+
+p.notitle {
+  color: red;
+}
+
 .prop {
   font-family: Inconsolata, monospaced;
 }
