@@ -11234,7 +11234,7 @@ textarea.form-control-lg {
 }
 
 .ctd p {
-  margin-bottom: none;
+  margin-bottom: 0px;
   font-size: 0.8rem;
 }
 
