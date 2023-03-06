@@ -27,7 +27,6 @@
           <thead class="table-light" style="position: sticky; top: 0;">
             <tr>
               <th scope="col">Property</th>
-              <th scope="col" class="ctd sorttable_numeric sorttable_sorted_reverse">Providers</th>
             </tr>
           </thead>
           <tbody id="propertiesTableBody">
@@ -152,7 +151,6 @@
         let tbody = table.find('#propertiesTableBody');
         data.PropertyKeys.forEach(prop => {
           let row = $('<tr><th scope="row" class="prop">'+ splitProperty(prop) +'</th></tr>');
-          row.append('<td class="ctd">'+ data.PropertiesAndProviders[prop].length +'</td>');
           data.Providers.forEach(provider => {
             let field = $('<td class="ctd"></td>');
             
