@@ -45,6 +45,8 @@ var (
 	url = "http://localhost:8080/"
 )
 
+// Data is a big data structure we deliver to the web UI as JSON,
+// containing all the information we want to display to users.
 type Data struct {
 	ClusterApps []analysis.ClusterApp
 	Providers   []string
@@ -52,8 +54,10 @@ type Data struct {
 	// List of all properties with hierarchical name
 	PropertyKeys []string
 
-	// Map of properties (key) and array of provides per key
-	PropertiesAndProviders map[string][]string
+	// Map of properties (key) and information per provider.
+	// Example:
+	// "/foo/bar": {"AWS": {"type": ["string"], "title": "...", "description": "..."}}
+	PropertiesAndProviders map[string]map[string]analysis.ProviderPropertySummary
 
 	// Map of features (key) and array of locations where this feature occurs.
 	Features map[string][]string
