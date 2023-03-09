@@ -11,6 +11,10 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+const (
+	recursionLimit = 20
+)
+
 // ClusterApp holds information on a Giant Swarm cluster app for a Cluster API provider.
 type ClusterApp struct {
 	// User-friendly name of the Cluster API infrastructure provider.
@@ -139,8 +143,8 @@ func flattenedSchema(schema *jsonschema.Schema, providerName string) map[string]
 // recursing into a schema's properties.
 func flattened(mymap map[string]*jsonschema.Schema, schema *jsonschema.Schema, providerName, parentKey string, level int) map[string]*jsonschema.Schema {
 	if slices.Contains(schema.Types, "object") {
-		if len(schema.Properties) == 0 && schema.AdditionalProperties == nil {
-			log.Printf("Warning: provider %q object %s has no 'properties'/'additionalProperties' defined.", providerName, parentKey)
+		if len(schema.Properties) == 0 && schema.AdditionalProperties == nil && schema.PatternProperties == nil {
+			log.Printf("Warning: provider %q object %s has no properties, additionalProperties, or patternProperties defined.", providerName, parentKey)
 		} else {
 			for propertyName, propertySchema := range schema.Properties {
 				key := parentKey + "/" + propertyName
@@ -149,8 +153,32 @@ func flattened(mymap map[string]*jsonschema.Schema, schema *jsonschema.Schema, p
 				}
 				mymap[key] = propertySchema
 
-				if level < 10 {
+				if level < recursionLimit {
 					mymap = flattened(mymap, propertySchema, providerName, key, level+1)
+				}
+			}
+
+			if schema.AdditionalProperties != nil {
+				propertySchema, ok := schema.AdditionalProperties.(*jsonschema.Schema)
+				if ok {
+					key := parentKey + "/*"
+					mymap[key] = propertySchema
+
+					if level < recursionLimit {
+						mymap = flattened(mymap, propertySchema, providerName, key, level+1)
+					}
+
+				}
+			}
+
+			if schema.PatternProperties != nil {
+				for pattern, propertySchema := range schema.PatternProperties {
+					key := parentKey + "/" + pattern.String()
+					mymap[key] = propertySchema
+
+					if level < recursionLimit {
+						mymap = flattened(mymap, propertySchema, providerName, key, level+1)
+					}
 				}
 			}
 		}
@@ -166,7 +194,7 @@ func flattened(mymap map[string]*jsonschema.Schema, schema *jsonschema.Schema, p
 						key := parentKey + "/" + propertyName
 						mymap[key] = propertySchema
 
-						if level < 10 {
+						if level < recursionLimit {
 							mymap = flattened(mymap, propertySchema, providerName, key, level+1)
 						}
 					}
@@ -194,7 +222,7 @@ func flattened(mymap map[string]*jsonschema.Schema, schema *jsonschema.Schema, p
 							key := parentKey + "/" + propertyName
 							mymap[key] = propertySchema
 
-							if level < 10 {
+							if level < recursionLimit {
 								mymap = flattened(mymap, propertySchema, providerName, key, level+1)
 							}
 						}
