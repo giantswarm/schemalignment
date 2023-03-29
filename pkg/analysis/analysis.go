@@ -112,6 +112,15 @@ func (a *Analyser) MergedSchemas() map[string]map[string]ProviderPropertySummary
 				fullSchemas[key] = make(map[string]ProviderPropertySummary)
 			}
 
+			if a.FlattenedSchema[clusterApp.ProviderName][key] == nil {
+				log.Printf("WARNING: a.FlattenedSchema[clusterApp.ProviderName][key] is nil - %s", key)
+				continue
+			}
+			if a.FlattenedSchema[clusterApp.ProviderName][key].Types == nil {
+				log.Printf("WARNING: Types is nil - %s", a.FlattenedSchema[clusterApp.ProviderName][key].Location)
+				continue
+			}
+
 			fullSchemas[key][clusterApp.ProviderName] = ProviderPropertySummary{
 				Types:       a.FlattenedSchema[clusterApp.ProviderName][key].Types,
 				Title:       a.FlattenedSchema[clusterApp.ProviderName][key].Title,
