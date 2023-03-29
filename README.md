@@ -2,7 +2,7 @@
 
 Example screenshot
 
-<img width="1439" alt="image" src="https://user-images.githubusercontent.com/273727/202226009-9e43bbac-9130-4007-8a81-419e77168799.png">
+<img width="1437" alt="image" src="https://user-images.githubusercontent.com/273727/228469886-1572abdf-0871-4304-929d-1fa6de62745e.png">
 
 ## Usage
 
