@@ -31,11 +31,6 @@ var (
 			SchemaURL:     "https://raw.githubusercontent.com/giantswarm/cluster-cloud-director/main/helm/cluster-cloud-director/values.schema.json",
 		},
 		{
-			ProviderName:  "GCP",
-			RepositoryURL: "https://github.com/giantswarm/cluster-gcp",
-			SchemaURL:     "https://raw.githubusercontent.com/giantswarm/cluster-gcp/main/helm/cluster-gcp/values.schema.json",
-		},
-		{
 			ProviderName:  "VSphere",
 			RepositoryURL: "https://github.com/giantswarm/cluster-vsphere",
 			SchemaURL:     "https://raw.githubusercontent.com/giantswarm/cluster-vsphere/main/helm/cluster-vsphere/values.schema.json",
